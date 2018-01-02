@@ -108,7 +108,7 @@ async def counters(champion):
     
     await bot.say(message1)
     await bot.say(message2)
-    await bot.sa y(message3)
+    await bot.say(message3)
     await bot.say(message4)
     await bot.say(message5)
     
