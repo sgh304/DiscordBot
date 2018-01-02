@@ -78,4 +78,35 @@ async def bans():
     #Output
     await bot.say(output)
 
+##Get the top 5 counters for a given champion
+@bot.command()
+async def counters(champion):
+    htmldoc = urllib.request.urlopen("http://na.op.gg/champion/" + champion + "/statistics/top/matchup").read()
+    soup = BeautifulSoup(htmldoc)
+
+    ##Get champion names
+    name_divs = soup.findAll("ul", {"class" : "champion-matchup-champion-list"})
+    counters = re.findall(r"bc'&gt;(.*?)&lt;", str(name_divs))
+    start = "&gt;"
+    end = "&lt;"
+    print(counters)
+
+    ##Get Win Rates
+    win_rate_divs = soup.findAll('td', {"class" :"champion-matchup-champion-list__winrate"})
+    win_rates = []
+    for i in win_rate_divs:
+        win_rates.append(str(i)[-11:-5])
+    print(win_rates)
+    await bot.say("The top five %s counters are: (op.gg)" % champion)
+    message1 = "Best Counter: " + counters[0] + " | Win Rate: " + win_rates[0]
+    message2 = "Second: " + counters[1] + " | Win Rate: " + win_rates[1]
+    message3 = "Third: " + counters[2] + " | Win Rate: " + win_rates[2]
+    message4 = "Fourth: " + counters[3] + " | Win Rate: " + win_rates[3]
+    message5 = "Fifth: " + counters[4] + " | Win Rate: " + win_rates[4]
+    await bot.say(message1)
+    await bot.say(message2)
+    await bot.sa y(message3)
+    await bot.say(message4)
+    await bot.say(message5)
+    
 bot.run("Mzk0MjcxMjIxNjc3Njg2Nzk0.DSxz6A.Rj5IaLDsiEPwMQ2nX1GW6XL7_ZY")
