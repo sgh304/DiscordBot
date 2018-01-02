@@ -91,8 +91,6 @@ async def counters(champion):
     ##Get champion names
     name_divs = soup.findAll("ul", {"class" : "champion-matchup-champion-list"})
     counters = re.findall(r"bc'&gt;(.*?)&lt;", str(name_divs))
-    start = "&gt;"
-    end = "&lt;"
     print(counters)
 
     ##Get win rates
