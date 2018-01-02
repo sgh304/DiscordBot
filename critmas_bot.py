@@ -44,4 +44,38 @@ async def items(champion):
     await bot.say(message2)
     await bot.say(message3)
 
+@bot.command()
+async def bans():
+    #Get winrate page from champion.gg
+    htmldoc = urllib.request.urlopen('http://champion.gg/statistics/#?sortBy=general.winPercent&order=descend').read()
+    soup = BeautifulSoup(htmldoc)
+    data = str(soup.find_all('script')[18])
+
+    #Pull winrate table from the page
+    exp = re.compile('\[[A-Za-z0-9:.,"\}\{ -_]*\]')
+    match = exp.search(data)
+    champ_string = match.string[match.start():match.end()]
+    champ_dict = json.loads(champ_string)
+
+    #Construct simpler list (tuples in form (name, winrate))
+    champ_list = []
+    for champ in champ_dict:
+        name = champ['key']
+        winrate = champ['general']['winPercent']
+        champ_list.append((name, winrate))
+    champ_list.sort(key=lambda champ: champ[1], reverse=True)
+
+    #Get the top 5 -- wow those are some good bans!!!
+    bans = champ_list[:5]
+    output = 'According to champion.gg, some good bans are: '
+    for index in range(4):
+        output += bans[index][0] + ', '
+    output += 'and ' + bans[4][0] + '.'
+
+    #But of course we ban Riven instead!!!!
+    output = 'According to the Grand Carnivalist, some good bans are: RIVEN, RIVEN, RIVEN, RIVEN, and RIVEN!'
+
+    #Output
+    await bot.say(output)
+
 bot.run("Mzk0MjcxMjIxNjc3Njg2Nzk0.DSxz6A.Rj5IaLDsiEPwMQ2nX1GW6XL7_ZY")
