@@ -43,4 +43,4 @@ async def items(champion):
     await bot.say(message2)
     await bot.say(message3)
 
-bot.run("Token")
+bot.run("Mzk0MjcxMjIxNjc3Njg2Nzk0.DSxz6A.Rj5IaLDsiEPwMQ2nX1GW6XL7_ZY")
