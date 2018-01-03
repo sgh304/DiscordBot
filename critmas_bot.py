@@ -22,7 +22,7 @@ async def on_ready():
 @bot.command()
 async def items(champion, lane = None):
     if lane is None:
-        await bot.say("Please choose a lane! Try something like this: \"?items Jhin bot\"")
+        lane = get_most_popular_lane(champion, message=True)
     else:
         htmldoc = urllib.request.urlopen("http://na.op.gg/champion/" + champion + "/statistics/" + lane + "/item").read()
         soup = BeautifulSoup(htmldoc)
@@ -74,10 +74,9 @@ async def bans():
 
     #But of course we ban Riven instead!!!!
     meme_output = 'According to the Grand Carnivalist, some good bans are: RIVEN, RIVEN, RIVEN, RIVEN, and RIVEN!'
-    #print(output)
     #Output
 
-    if randint(0,50) == 25:
+    if randint(0,100) == 25:
         await bot.say(meme_output)
     else:
         await bot.say(output)
@@ -86,7 +85,7 @@ async def bans():
 @bot.command()
 async def counters(champion, lane = None):
     if lane is None:
-        await bot.say("Please choose a lane! Try something like this: \"?counters Jhin bot\"")
+        lane = get_most_popular_lane(champion, message=True)
     else:
         htmldoc = urllib.request.urlopen("http://na.op.gg/champion/" + champion + "/statistics/" + lane + "/matchups").read()
         soup = BeautifulSoup(htmldoc)
@@ -113,5 +112,20 @@ async def counters(champion, lane = None):
         await bot.say(message3)
         await bot.say(message4)
         await bot.say(message5)
+
+def get_most_popular_lane(champion, message=False):
+    #Hack to determine most popular lane (a request to op.gg for a champion's statistics redirects by default to their most popular lane)
+    #Get redirected URL
+    lane_test_request = urllib.request.urlopen('http://na.op.gg/champion/{}/statistics/'.format(champion))
+    lane_test_url = lane_test_request.geturl()
+    #Pull lane from URL
+    exp = re.compile('\/[A-Za-z]*')
+    matches = exp.findall(lane_test_url)
+    lane = matches[-1][1:]
+    #If desired, print a helpful message
+    if message:
+        await bot.say('No lane selected. Defaulting to {}\'s most popular lane, {}. ' \
+            'If you want another lane, try something like this: "?items {} {}"'.format(champion, lane, champion, lane))
+    return lane
 
 bot.run("Mzk0MjcxMjIxNjc3Njg2Nzk0.DSxz6A.Rj5IaLDsiEPwMQ2nX1GW6XL7_ZY")
