@@ -29,8 +29,6 @@ async def items(champion, lane = None):
         ##Get item names
         name_divs = soup.findAll("ul", {"class" : "champion-stats__list"})
         items = re.findall(r"bc'&gt;(.*?)&lt;", str(name_divs))
-        print(items)
-
         ##Get Win Rates
         win_rate_divs = soup.findAll('td', {"class" :"champion-stats__table__cell--winrate"})
         win_rates = []
@@ -57,26 +55,18 @@ async def bans():
     champ_string = match.string[match.start():match.end()]
     champ_dict = json.loads(champ_string)
 
-    #Construct simpler list (tuples in form (name, winrate))
+    #Construct simpler list (dictionaries containing name, winrate)
     champ_list = []
     for champ in champ_dict:
         name = champ['key']
         winrate = champ['general']['winPercent']
-        champ_list.append((name, winrate))
-    champ_list.sort(key=lambda champ: champ[1], reverse=True)
+        champ_list.append({'name': name, 'winrate': winrate})
+    champ_list.sort(key=lambda champ: champ['winrate'], reverse=True)
 
-    #Get the top 5 -- wow those are some good bans!!!
-    bans = champ_list[:5]
-    output = 'According to champion.gg, some good bans are: '
-    for index in range(4):
-        output += bans[index][0] + ', '
-    output += 'and ' + bans[4][0] + '.'
-
-    #But of course we ban Riven instead!!!!
+    #Output the top 5 -- wow those are some good bans!
+    output = 'According to champion.gg, some good bans are: {}, {}, {}, {}, and {}.'.format(champ_list[0]['name'], champ_list[1]['name'], champ_list[2]['name'], champ_list[3]['name'], champ_list[4]['name'])
     meme_output = 'According to the Grand Carnivalist, some good bans are: RIVEN, RIVEN, RIVEN, RIVEN, and RIVEN!'
-    #Output
-
-    if randint(0,100) == 25:
+    if randint(0,100) == 44:
         await bot.say(meme_output)
     else:
         await bot.say(output)
