@@ -88,10 +88,8 @@ async def get_champion_info(champion, message=False):
     #Get champion's name in proper form
     champion_name = champion[:1].upper() + champion[1:].lower()
     #Get champion info page
-    try:
-        champion_response = requests.get('http://champion.gg/champion/{}'.format(champion_name))
-    except:
-        #Print a message and return false if champion is invalid
+    champion_response = requests.get('http://champion.gg/champion/{}'.format(champion_name))
+    if champion_response.status_code == 500:
         if message:
             await bot.say('{} is not a valid champion name. Typo?'.format(champion))
         return False
