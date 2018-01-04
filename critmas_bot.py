@@ -20,10 +20,13 @@ async def on_ready():
 
 ##Get Reccommended Items for Champion
 @bot.command()
-async def items(champion, lane = None):
-    if lane is None:
-        lane, lane_message = get_most_popular_lane(champion, message=True)
-        await bot.say(lane_message)
+async def items(champion, lane=None):
+    #Check if valid champion
+    if not await get_champion_info(champion, message=True):
+        return
+    #Get most popular lane if needed
+    if not lane:
+        lane = await get_most_popular_lane(champion, message=True)
     htmldoc = urllib.request.urlopen("http://na.op.gg/champion/" + champion + "/statistics/" + lane + "/item").read()
     soup = BeautifulSoup(htmldoc)
     ##Get item names
@@ -71,10 +74,13 @@ async def bans():
 
 ##Get the top 5 counters for a given champion
 @bot.command()
-async def counters(champion, lane = None):
-    if lane is None:
-        lane, lane_message = get_most_popular_lane(champion, message=True)
-        await bot.say(lane_message)
+async def counters(champion, lane=None):
+    #Check if valid champion
+    if not await get_champion_info(champion, message=True):
+        return
+    #Get most popular lane if needed
+    if not lane:
+        lane = await get_most_popular_lane(champion, message=True)
     htmldoc = urllib.request.urlopen("http://na.op.gg/champion/" + champion + "/statistics/" + lane + "/matchups").read()
     soup = BeautifulSoup(htmldoc)
 
@@ -91,19 +97,42 @@ async def counters(champion, lane = None):
     for i in range(0,5):
         await bot.say("{} | Win Rate: {}%".format(counters[i], win_rates[i]))
 
-def get_most_popular_lane(champion, message=False):
-    #Hack to determine most popular lane (a request to op.gg for a champion's statistics redirects by default to their most popular lane)
-    #Get redirected URL
-    lane_test_request = urllib.request.urlopen('http://na.op.gg/champion/{}/statistics/'.format(champion))
-    lane_test_url = lane_test_request.geturl()
-    #Pull lane from URL
-    exp = re.compile('\/[A-Za-z]*')
-    matches = exp.findall(lane_test_url)
-    lane = matches[-1][1:]
-    #If desired, print a helpful message
+#Returns a dictionary with some info about a given champion, or returns false and prints a message if the champion requested is invalid.
+#This should help with further command development.
+async def get_champion_info(champion, message=False):
+    #Get champion's name in proper form
+    champion_name = champion[:1].upper() + champion[1:].lower()
+    #Get champion info page
+    try:
+        champion_response = urllib.request.urlopen('http://champion.gg/champion/{}'.format(champion_name))
+        champion_response_text = str(champion_response.read())
+    except:
+        #Print a message and return false if champion is invalid
+        if message:
+            await bot.say('{} is not a valid champion name. Typo?'.format(champion))
+        return False
+    #Get lanes (in popularity order)
+    lanes_exp = re.compile('\/champion\/{}\/[A-Za-z]*'.format(champion_name))
+    raw_lanes_strings = lanes_exp.findall(champion_response_text)
+    lanes = [raw_lane_string.replace('/champion/{}/'.format(champion_name), '') for raw_lane_string in raw_lanes_strings]
+    #Get win rate
+    win_rate_exp = re.compile('Win Rate\\\\n      <\/a>\\\\n     <\/td>\\\\n     <td>\\\\n      [0-9]*.[0-9]*%')
+    raw_win_rate_string = win_rate_exp.search(champion_response_text).group(0)
+    win_rate = raw_win_rate_string.replace('Win Rate\\n      </a>\\n     </td>\\n     <td>\\n      ', '')
+    #Return dictionary
+    return {
+        'Name': champion_name,
+        'Lanes': lanes,
+        'Win Rate': win_rate
+    }
+
+async def get_most_popular_lane(champion, message=False):
+    champion_dict = await get_champion_info(champion)
+    champion_name = champ_dict['Name']
+    lane = champ_dict['Lanes'][0]
     if message:
-        lane_message = ('No lane selected. Defaulting to {}\'s most popular lane, {}. ' \
-            'If you want another lane, try something like this: "?items {} {}"'.format(champion, lane, champion, lane))
-    return lane, lane_message
+        bot.say('No lane selected. Defaulting to {}\'s most popular lane, {}. ' \
+            'If you want another lane, try something like this: "?items {} {}"'.format(champion_name, lane, champion_name, lane))
+    return lane
 
 bot.run("Mzk0MjcxMjIxNjc3Njg2Nzk0.DSxz6A.Rj5IaLDsiEPwMQ2nX1GW6XL7_ZY")
