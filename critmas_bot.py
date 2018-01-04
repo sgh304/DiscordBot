@@ -89,7 +89,7 @@ async def counters(champion, lane = None):
 
     # Display top five counters and their win rates
     for i in range(0,5):
-        await bot.say("Best counter: {} | Win Rate: {}%".format(counters[i], win_rates[i]))
+        await bot.say("{} | Win Rate: {}%".format(counters[i], win_rates[i]))
 
 def get_most_popular_lane(champion, message=False):
     #Hack to determine most popular lane (a request to op.gg for a champion's statistics redirects by default to their most popular lane)
