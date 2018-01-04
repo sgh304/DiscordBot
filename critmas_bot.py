@@ -3,6 +3,7 @@ from discord.ext import commands
 from bs4 import BeautifulSoup
 import urllib
 import urllib.request
+import requests
 import re
 import json
 from random import randint
@@ -46,26 +47,17 @@ async def items(champion, lane=None):
 @bot.command()
 async def bans():
     #Get winrate page from champion.gg
-    htmldoc = urllib.request.urlopen('http://champion.gg/statistics/#?sortBy=general.winPercent&order=descend').read()
-    soup = BeautifulSoup(htmldoc)
-    data = str(soup.find_all('script')[18])
-
+    response = requests.get('http://champion.gg/statistics/#?sortBy=general.winPercent&order=descend')
     #Pull winrate table from the page
-    exp = re.compile('\[[A-Za-z0-9:.,"\}\{ -_]*\]')
-    match = exp.search(data)
-    champ_string = match.string[match.start():match.end()]
-    champ_dict = json.loads(champ_string)
-
-    #Construct simpler list (dictionaries containing name, winrate)
-    champ_list = []
-    for champ in champ_dict:
-        name = champ['key']
-        winrate = champ['general']['winPercent']
-        champ_list.append({'name': name, 'winrate': winrate})
-    champ_list.sort(key=lambda champ: champ['winrate'], reverse=True)
-
+    exp = re.compile('matchupData.stats = \[[\S\s]*?\]')
+    raw_string = exp.search(response.text).group(0)
+    string = raw_string.replace('matchupData.stats = ', '')
+    champion_dict = json.loads(string)
+    #Make simpler list from the page's
+    champion_list = [{'Name': champion['key'], 'Win Rate': champion['general']['winPercent']} for champion in champion_dict]
+    champion_list.sort(key=lambda champ: champ['Win Rate'], reverse=True)
     #Output the top 5 -- wow those are some good bans!
-    output = 'According to champion.gg, some good bans are: {}, {}, {}, {}, and {}.'.format(champ_list[0]['name'], champ_list[1]['name'], champ_list[2]['name'], champ_list[3]['name'], champ_list[4]['name'])
+    output = 'According to champion.gg, some good bans are: {}, {}, {}, {}, and {}.'.format(champion_list[0]['Name'], champion_list[1]['Name'], champion_list[2]['Name'], champion_list[3]['Name'], champion_list[4]['Name'])
     meme_output = 'According to the Grand Carnivalist, some good bans are: RIVEN, RIVEN, RIVEN, RIVEN, and RIVEN!'
     if randint(0,100) == 44:
         await bot.say(meme_output)
@@ -104,8 +96,7 @@ async def get_champion_info(champion, message=False):
     champion_name = champion[:1].upper() + champion[1:].lower()
     #Get champion info page
     try:
-        champion_response = urllib.request.urlopen('http://champion.gg/champion/{}'.format(champion_name))
-        champion_response_text = str(champion_response.read())
+        champion_response = requests.get('http://champion.gg/champion/{}'.format(champion_name))
     except:
         #Print a message and return false if champion is invalid
         if message:
@@ -113,17 +104,29 @@ async def get_champion_info(champion, message=False):
         return False
     #Get lanes (in popularity order)
     lanes_exp = re.compile('\/champion\/{}\/[A-Za-z]*'.format(champion_name))
-    raw_lanes_strings = lanes_exp.findall(champion_response_text)
+    raw_lanes_strings = lanes_exp.findall(champion_response.text)
     lanes = [raw_lane_string.replace('/champion/{}/'.format(champion_name), '') for raw_lane_string in raw_lanes_strings]
     #Get win rate
-    win_rate_exp = re.compile('Win Rate\\\\n      <\/a>\\\\n     <\/td>\\\\n     <td>\\\\n      [0-9]*.[0-9]*%')
-    raw_win_rate_string = win_rate_exp.search(champion_response_text).group(0)
-    win_rate = raw_win_rate_string.replace('Win Rate\\n      </a>\\n     </td>\\n     <td>\\n      ', '')
+    win_rate_exp = re.compile('Win Rate\n      </a>\n     </td>\n     <td>\n      [0-9]*.[0-9]*%')
+    raw_win_rate_string = win_rate_exp.search(champion_response.text).group(0)
+    win_rate = raw_win_rate_string.replace('Win Rate\n      </a>\n     </td>\n     <td>\n      ', '')
+    #Get matchups
+    matchups = {}
+    for lane in lanes:
+        lane_response = requests.get('http://champion.gg/champion/{}/{}'.format(champion, lane))
+        matchups_exp = re.compile('"matchups":\[[\s\S]*?]')
+        raw_lane_matchups_string = matchups_exp.search(lane_response.text).group(0)
+        lane_matchups_string = raw_lane_matchups_string.replace('"matchups":', '')
+        lane_matchups_dict = json.loads(lane_matchups_string)
+        lane_matchups_list = [{'Name': matchup['key'], 'Win Rate': 1 - matchup['winRate'], 'Games': matchup['games']} for matchup in lane_matchups_dict]
+        lane_matchups_list.sort(key=lambda matchup: matchup['Win Rate'], reverse=True)
+        matchups[lane] = lane_matchups_list
     #Return dictionary
     return {
         'Name': champion_name,
         'Lanes': lanes,
-        'Win Rate': win_rate
+        'Win Rate': win_rate,
+        'Matchups': matchups
     }
 
 async def get_most_popular_lane(champion, message=False):
