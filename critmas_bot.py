@@ -67,27 +67,20 @@ async def bans():
 ##Get the top 5 counters for a given champion
 @bot.command()
 async def counters(champion, lane=None):
+    #Get info
+    info = await get_champion_info(champion, message=True)
     #Check if valid champion
-    if not await get_champion_info(champion, message=True):
+    if not info:
         return
     #Get most popular lane if needed
     if not lane:
         lane = await get_most_popular_lane(champion, message=True)
-    htmldoc = urllib.request.urlopen("http://na.op.gg/champion/" + champion + "/statistics/" + lane + "/matchups").read()
-    soup = BeautifulSoup(htmldoc)
-
-    ##Get champion names
-    name_divs = soup.find_all("div", {"class" : "champion-matchup-list__champion"})
-    counters = re.findall(r"<span>(.*?)</span>", str(name_divs))
-    win_rates = re.findall(r"([0123456789\.]{1,5})(?=%)", str(name_divs))
-
-    ##Sort win_rates then take 1 - win_rates
-    win_rates, counters = zip(*sorted(zip(win_rates, counters)))
-    win_rates = [100 - float(x) for x in win_rates]
-
-    # Display top five counters and their win rates
-    for i in range(0,5):
-        await bot.say("{} | Win Rate: {}%".format(counters[i], win_rates[i]))
+    #Get best counters
+    lane_name = lane[:1].upper() + lane[1:].lower()
+    top_5 = info['Matchups'][lane_name][:5]
+    #Output
+    for counter in top_5:
+        await bot.say('{} wins {:.0f}% of the time ({} games)'.format(counter['Name'], counter['Win Rate']*100, counter['Games']))
 
 #Returns a dictionary with some info about a given champion, or returns false and prints a message if the champion requested is invalid.
 #This should help with further command development.
@@ -130,9 +123,9 @@ async def get_champion_info(champion, message=False):
     }
 
 async def get_most_popular_lane(champion, message=False):
-    champion_dict = await get_champion_info(champion)
-    champion_name = champ_dict['Name']
-    lane = champ_dict['Lanes'][0]
+    info = await get_champion_info(champion)
+    champion_name = info['Name']
+    lane = info['Lanes'][0]
     if message:
         bot.say('No lane selected. Defaulting to {}\'s most popular lane, {}. ' \
             'If you want another lane, try something like this: "?items {} {}"'.format(champion_name, lane, champion_name, lane))
