@@ -100,7 +100,7 @@ async def bans():
     champion_list = json.loads(string)
     champion_list.sort(key=lambda champion: champion['general']['winPercent'], reverse=True)
     #Output the top 5 -- wow those are some good bans!
-    output = 'According to champion.gg, some good bans are: {}, {}, {}, {}, and {}.'.format(champion_list[0]['Name'], champion_list[1]['Name'], champion_list[2]['Name'], champion_list[3]['Name'], champion_list[4]['Name'])
+    output = 'According to champion.gg, some good bans are: {}, {}, {}, {}, and {}.'.format(lane_output, champion_list[0]['key'], champion_list[1]['key'], champion_list[2]['key'], champion_list[3]['key'], champion_list[4]['key'])
     if randint(0,100) == 44:
         output = 'According to the Grand Carnivalist, some good bans are: RIVEN, RIVEN, RIVEN, RIVEN, and RIVEN!'
     await bot.say(output)
