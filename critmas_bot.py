@@ -63,6 +63,33 @@ async def items(champion, lane=None):
     await bot.say(say_message)
 
 @bot.command()
+async def picks(lane=None):
+    #Get proper lane name
+    if lane:
+        proper_lane_name = await get_proper_lane_name(lane)
+        if not proper_lane_name:
+            await bot.say('{} is not a valid lane name. Please try again.'.format(lane))
+            return
+    #Get winrate page from champion.gg
+    response = requests.get('http://champion.gg/statistics/#?sortBy=general.winPercent&order=descend')
+    #Pull winrate table from the page
+    exp = re.compile('matchupData.stats = \[[\S\s]*?\]')
+    raw_string = exp.search(response.text).group(0)
+    string = raw_string.replace('matchupData.stats = ', '')
+    champion_list = json.loads(string)
+    #If lane requested, filter accordingly
+    if lane:
+        champion_list = [champion for champion in champion_list if champion['role'] == proper_lane_name]
+    #Make simpler list from the page's
+    champion_list.sort(key=lambda champion: champion['general']['winPercent'], reverse=True)
+    #Output the top 5 -- wow those are some good picks!
+    lane_output = ''
+    if lane:
+        lane_output = ' for {}'.format(proper_lane_name)
+    output = 'According to champion.gg, some good picks{} are: {}, {}, {}, {}, and {}.'.format(lane_output, champion_list[0]['key'], champion_list[1]['key'], champion_list[2]['key'], champion_list[3]['key'], champion_list[4]['key'])
+    await bot.say(output)
+
+@bot.command()
 async def bans():
     #Get winrate page from champion.gg
     response = requests.get('http://champion.gg/statistics/#?sortBy=general.winPercent&order=descend')
@@ -70,17 +97,13 @@ async def bans():
     exp = re.compile('matchupData.stats = \[[\S\s]*?\]')
     raw_string = exp.search(response.text).group(0)
     string = raw_string.replace('matchupData.stats = ', '')
-    champion_dict = json.loads(string)
-    #Make simpler list from the page's
-    champion_list = [{'Name': champion['key'], 'Win Rate': champion['general']['winPercent']} for champion in champion_dict]
-    champion_list.sort(key=lambda champ: champ['Win Rate'], reverse=True)
+    champion_list = json.loads(string)
+    champion_list.sort(key=lambda champion: champion['general']['winPercent'], reverse=True)
     #Output the top 5 -- wow those are some good bans!
     output = 'According to champion.gg, some good bans are: {}, {}, {}, {}, and {}.'.format(champion_list[0]['Name'], champion_list[1]['Name'], champion_list[2]['Name'], champion_list[3]['Name'], champion_list[4]['Name'])
-    meme_output = 'According to the Grand Carnivalist, some good bans are: RIVEN, RIVEN, RIVEN, RIVEN, and RIVEN!'
     if randint(0,100) == 44:
-        await bot.say(meme_output)
-    else:
-        await bot.say(output)
+        output = 'According to the Grand Carnivalist, some good bans are: RIVEN, RIVEN, RIVEN, RIVEN, and RIVEN!'
+    await bot.say(output)
 
 ##Get the top 5 counters for a given champion
 @bot.command()
@@ -101,6 +124,7 @@ async def counters(champion, lane=None):
     for counter in top_5:
         say_message += ('{} wins {:.0f}% of the time ({} games)\n'.format(counter['Name'], counter['Win Rate']*100, counter['Games']))
     await bot.say(say_message)
+
 #Returns a dictionary with some info about a given champion, or returns false and prints a message if the champion requested is invalid.
 #This should help with further command development.
 async def get_champion_info(champion, message=False):
@@ -147,5 +171,18 @@ async def get_most_popular_lane(champion, message=False):
         bot.say('No lane selected. Defaulting to {}\'s most popular lane, {}. ' \
             'If you want another lane, try something like this: "?items {} {}"'.format(champion_name, lane, champion_name, lane))
     return lane
+
+async def get_proper_lane_name(lane):
+    lane_name = lane.lower()
+    lane_dict = {
+                'jg': 'Jungle', 'jungle': 'Jungle', 'jungler': 'Jungle', 'j': 'Jungle',
+                'top': 'Top', 't': 'Top',
+                'mid': 'Middle', 'middle': 'Middle', 'm': 'Middle',
+                'bot': 'ADC', 'adc': 'ADC', 'adcarry': 'ADC', 'b': 'ADC', 'a': 'ADC',
+                'support': 'Support', 'supporter': 'Support', 'shitter': 'Support', 's': 'Support',
+    }
+    if lane_name not in lane_dict:
+        return False
+    return lane_dict[lane_name]
 
 bot.run("Mzk0MjcxMjIxNjc3Njg2Nzk0.DSxz6A.Rj5IaLDsiEPwMQ2nX1GW6XL7_ZY")
