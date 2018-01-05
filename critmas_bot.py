@@ -80,7 +80,6 @@ async def picks(lane=None):
     #If lane requested, filter accordingly
     if lane:
         champion_list = [champion for champion in champion_list if champion['role'] == proper_lane_name]
-    #Make simpler list from the page's
     champion_list.sort(key=lambda champion: champion['general']['winPercent'], reverse=True)
     #Output the top 5 -- wow those are some good picks!
     lane_output = ''
