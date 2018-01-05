@@ -19,6 +19,23 @@ async def on_ready():
     print(bot.user.name)
     print("")
 
+
+@bot.command()
+async def info(command = None):
+    if command:
+        return #ADD A function to look at a specific function here
+    await bot.say("Hello, I am a bot! These are some things I can do:\n"
+        "?items champion lane \n"
+        "       -Gets the three most popular build paths for the specified champion and lane. \n"
+        "?counters champion lane \n"
+        "       -Gets the five champions with the highest winrate versus the specified champion and lane. \n"
+        "?bans\n"
+        "       -Gets the five champs with the highest win rates this patch. \n"
+        "----------------------------------------------------------------- \n"
+        "Example: ?items Jhin Bot \n"
+        "Example: ?counters Gnar Top \n"
+        "Example: ?bans")
+
 ##Get Reccommended Items for Champion
 @bot.command()
 async def items(champion, lane=None):
@@ -40,9 +57,10 @@ async def items(champion, lane=None):
     for i in win_rate_divs:
         win_rates.append(str(i)[-11:-5])
 
+    say_message = ""
     for i in range(0,8,3):
-        await bot.say("Build {}: {} > {} ? {} | Win Rate: {}".format(i//3 + 1, items[i], items[i+1], items[i+2], win_rates[i//3] ))
-
+        say_message += ("Build {}: {} > {} > {} | Win Rate: {}\n".format(i//3 + 1, items[i], items[i+1], items[i+2], win_rates[i//3] ))
+    await bot.say(say_message)
 
 @bot.command()
 async def bans():
@@ -79,9 +97,10 @@ async def counters(champion, lane=None):
     lane_name = lane[:1].upper() + lane[1:].lower()
     top_5 = info['Matchups'][lane_name][:5]
     #Output
+    say_message = ""
     for counter in top_5:
-        await bot.say('{} wins {:.0f}% of the time ({} games)'.format(counter['Name'], counter['Win Rate']*100, counter['Games']))
-
+        say_message += ('{} wins {:.0f}% of the time ({} games)\n'.format(counter['Name'], counter['Win Rate']*100, counter['Games']))
+    await bot.say(say_message)
 #Returns a dictionary with some info about a given champion, or returns false and prints a message if the champion requested is invalid.
 #This should help with further command development.
 async def get_champion_info(champion, message=False):
