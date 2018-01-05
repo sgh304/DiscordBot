@@ -1,2 +1,2 @@
 # DiscordBot
-A discord bot for the discord channel my friends and I use.
+A discord bot for the Newt3 Discord Channel.
