@@ -93,6 +93,9 @@ def run_api_tests():
 	print('** Failures: {} ({:.2f}%)'.format(failures, (failures / (successes + failures) * 100)))
 
 def run_bot_tests():
+	# Not sure how to do these. Note that the bot's commands return their output as well
+	# as send them to the actual bot, so maybe this could be leveraged somehow.
 	pass
 
 run_api_tests()
+run_bot_tests()
