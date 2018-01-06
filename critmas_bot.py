@@ -116,7 +116,7 @@ async def counters(champion, lane=None):
     if not lane:
         lane = await get_most_popular_lane(champion, message=True)
     #Get best counters
-    lane_name = lane[:1].upper() + lane[1:].lower()
+    lane_name = await get_proper_lane_name(lane)
     top_5 = info['Matchups'][lane_name][:5]
     #Output
     say_message = ""
