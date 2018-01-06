@@ -127,6 +127,8 @@ def get_champion_matchups(name = None, role = None, number = None, info = None):
 		role = get_proper_role(role)
 	else:
 		role = get_champion_most_popular_role(info = info)
+	if role not in info['Roles']:
+		raise InvalidRoleException
 	total_matchups = len(info['Matchups'][role])
 	if not number or number > total_matchups:
 		number = total_matchups

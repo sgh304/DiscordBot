@@ -70,8 +70,38 @@ async def picks(role = None):
 @bot.command()
 async def bans():
 ##		Outputs the top 5 win rate champions
-	win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
-	output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good bans.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name)
-	bot.say(output)
-	return output
+	try:
+		win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
+		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good bans.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name)
+	except newt3_api.NonExistantRoleException:
+		output = '{} is not a valid role name. Please try again.'.format(role)
+	finally:
+		bot.say(output)
+		return output
 
+@bot.command()
+async def counters(name, role = None):
+##		Takes in a champion name and role and outputs the top 5 counters for that champion
+##		in that role. If no role is passed, the counters for champion's most popular role are
+##		output.
+	if not role:
+		try:
+			role = newt3_api.get_champion_most_popular_role(name = name)
+		except newt3_api.NonExistantChampionException:
+			output = '{} is not a valid champion name. Please try again.'.format(name)
+	try:
+		matchups = newt3_api.get_champion_matchups(name = name, role = role, number = 5)
+		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good counters for {} in {}.'.format(matchups[0].name, matchups[1].name, matchups[2].name, matchups[3].name, matchups[4].name, name, role)
+	except newt3_api.NonExistantChampionException:
+		output = '{} is not a valid champion name. Please try again.'.format(name)
+	except newt3_api.NonExistantRoleException:
+		output = '{} is not a valid role name. Please try again.'.format(role)
+	except newt3_api.InvalidRoleException:
+		output = '{} is not a role for {}. Please try again'.format(role, name)
+	finally:
+		bot.say(output)
+		return output
+
+### RUN NEWT3 BOT
+
+bot.run("Mzk0MjcxMjIxNjc3Njg2Nzk0.DSxz6A.Rj5IaLDsiEPwMQ2nX1GW6XL7_ZY")
