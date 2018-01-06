@@ -9,6 +9,11 @@
 
 ###           Newt3 API -- An API to support the Newt3 Discord Chatbot             ###
 
+### Authors:                                                                       ###
+###							- Wes Smith											   ###
+###							- Sam Holloway										   ###
+###							- Aaron Simpson										   ###
+
 ### Pulls League of Legends information from:                                      ###
 ###							- champion.gg                                          ###
 ###							- op.gg                                                ###
@@ -18,7 +23,25 @@ import json
 import re
 import requests
 
-### CHAMPION INFO
+### GENERAL INFO
+
+def get_champion_win_rates(number = None):
+##		Takes in a number and returns the names and win rates of the champions with the top number win rates
+##		in the game
+	response = requests.get('http://champion.gg/statistics/#?sortBy=general.winPercent&order=descend')
+	# Pull winrate table from the page
+	raw_string = re.search('matchupData.stats = \[[\S\s]*?\]', response.text).group(0)
+	string = raw_string.replace('matchupData.stats = ', '')
+	raw_champion_list = json.loads(string)
+	# Simplify list and return
+	Champion = collections.namedtuple('Champion', ['name', 'win_rate'])
+	champion_list = [Champion(champion['key'], champion['general']['winPercent']) for champion in raw_champion_list]
+	champion_list.sort(key = lambda champion: champion.win_rate, reverse = True)
+	if not number:
+		number = len(champion_list)
+	return champion_list[:number]
+
+### SPECIFIC CHAMPION INFO
 
 def get_champion_info(name):
 ##		The bread and butter of the champion info functions, takes a champion's name and returns
@@ -91,6 +114,21 @@ def get_champion_win_rate(name = None, role = None, info = None):
 	if role not in info['Roles']:
 		raise InvalidRoleException
 	return info['Win Rate'][role]
+
+def get_champion_matchups(name = None, role = None, number = None, info = None):
+##		Takes a champion name and role and number and returns the champion's worst number matchups in
+##		that role. If no role is passed, the matchups of the champion's most popular role is output. If
+##		no number is passed, all matchups are output.
+	if not info:
+		info = get_champion_info(name = name)
+	if role:
+		role = get_proper_role(role)
+	else:
+		role = get_champion_most_popular_role(info = info)
+	total_matchups = len(info['Matchups'][role])
+	if not number or number > total_matchups:
+		number = total_matchups
+	return info['Matchups'][role][:number]
 
 ### INPUT
 
