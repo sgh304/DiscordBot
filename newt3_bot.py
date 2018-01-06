@@ -16,5 +16,54 @@
 
 import discord
 from discord.ext import commands
+import newt3_api
 from random import randint
 
+### BOT SETUP
+
+client = discord.Client()
+bot = commands.Bot(command_prefix = '?', description = 'Newt3 BOT')
+
+### ON READY
+
+@bot.event
+async def on_ready():
+	print('Logging is as {}'.format(bot.user.name))
+
+### COMMANDS
+
+@bot.command()
+async def info(command = None):
+##		Outputs some helpful info.
+	if command:
+		return #ADD A function to look at a specific function here
+	output = (	'Hello, I am a bot! These are some things I can do:\n'
+				'?items champion lane \n'
+				'		-Gets the three most popular build paths for the specified champion and lane. \n'
+				'?counters champion lane \n'
+				'		-Gets the five champions with the highest winrate versus the specified champion and lane. \n'
+				'?bans\n'
+				'		-Gets the five champs with the highest win rates this patch. \n'
+				'----------------------------------------------------------------- \n'
+				'Example: ?items Jhin Bot \n'
+				'Example: ?counters Gnar Top \n'
+				'Example: ?bans')
+	await bot.say(output)
+	return output
+
+
+@bot.command()
+async def picks(role = None):
+##		Takes in a role and outputs the top 5 picks in that role based on win rate.
+##		If no role is passed, it outputs the top 5 picks in general.
+	try:
+		win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
+		role_output = ''
+		if role:
+			role_output = ' for {}'.format(role)
+		output = 'According to champion.gg, {}, {}, {}, {}, and {}, are some good picks{}.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name, role_output)
+	except newt3_api.NonExistantRoleException:
+		output = '{} is not a valid role name. Please try again.'.format(role)
+	finally:
+		bot.say(output)
+		return output

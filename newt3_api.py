@@ -25,9 +25,11 @@ import requests
 
 ### GENERAL INFO
 
-def get_champion_win_rates(number = None):
-##		Takes in a number and returns the names and win rates of the champions with the top number win rates
-##		in the game
+def get_champion_win_rates(role = None, number = None):
+##		Takes in a role and number and returns the names and win rates of the champions in that role with
+##		the top number win rates
+	if role:
+		role = get_proper_role(role)
 	response = requests.get('http://champion.gg/statistics/#?sortBy=general.winPercent&order=descend')
 	# Pull winrate table from the page
 	raw_string = re.search('matchupData.stats = \[[\S\s]*?\]', response.text).group(0)
@@ -35,7 +37,7 @@ def get_champion_win_rates(number = None):
 	raw_champion_list = json.loads(string)
 	# Simplify list and return
 	Champion = collections.namedtuple('Champion', ['name', 'win_rate'])
-	champion_list = [Champion(champion['key'], champion['general']['winPercent']) for champion in raw_champion_list]
+	champion_list = [Champion(champion['key'], champion['general']['winPercent']) for champion in raw_champion_list if not role or champion['role'] == role]
 	champion_list.sort(key = lambda champion: champion.win_rate, reverse = True)
 	if not number:
 		number = len(champion_list)
