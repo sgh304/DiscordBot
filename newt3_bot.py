@@ -68,14 +68,31 @@ async def counters(name, role = None):
 ##		Takes in a champion name and role and outputs the top 5 counters for that champion
 ##		in that role. If no role is passed, the counters for champion's most popular role are
 ##		output.
-	if not role:
-		try:
-			role = newt3_api.get_champion_most_popular_role(name = name)
-		except newt3_api.NonExistantChampionException:
-			output = '{} is not a valid champion name. Please try again.'.format(name)
 	try:
 		matchups = newt3_api.get_champion_matchups(name = name, role = role, number = 5)
 		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good counters for {} in {}.'.format(matchups[0].name, matchups[1].name, matchups[2].name, matchups[3].name, matchups[4].name, name, role)
+	except newt3_api.NonExistantChampionException:
+		output = '{} is not a valid champion name. Please try again.'.format(name)
+	except newt3_api.NonExistantRoleException:
+		output = '{} is not a valid role name. Please try again.'.format(role)
+	except newt3_api.InvalidRoleException:
+		output = '{} is not a role for {}. Please try again'.format(role, name)
+	finally:
+		bot.say(output)
+		return output
+
+@bot.command()
+##		Takes in a champion name and role and outputs the top 3 builds for that champion
+##		in that role. If no role is passed, the builds for champion's most popular role are
+##		output.
+	try:
+		builds = newt3_api.get_champion_builds(name = name, role = role, number = 3)
+		output = 	(
+					'According to champion.gg, some good builds for {} are:\n'
+					'	-{}\n'
+					'	-{}\n'
+					'	-{}\n'
+					).format(name, builds[0].items, builds[1].items, builds[2].items)
 	except newt3_api.NonExistantChampionException:
 		output = '{} is not a valid champion name. Please try again.'.format(name)
 	except newt3_api.NonExistantRoleException:

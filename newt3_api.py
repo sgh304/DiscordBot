@@ -67,6 +67,8 @@ def get_champion_info(name):
 	matchups = {}
 	matchups_exp = re.compile('"matchups":\[[\s\S]*?]')
 	Matchup = collections.namedtuple('Matchup', ['name', 'win_rate', 'games'])
+	builds = {}
+	OptimalBuild = collections.namedtuple('OptimalBuild', ['items', 'win_rate'])
 	for role in roles:
 		# Get role page
 		role_response = requests.get('http://champion.gg/champion/{}/{}'.format(name, role))
@@ -81,12 +83,24 @@ def get_champion_info(name):
 		role_matchups = [Matchup(cgg_matchup['key'], 1 - cgg_matchup['winRate'], cgg_matchup['games']) for cgg_matchup in role_cgg_matchups]
 		role_matchups.sort(key=lambda matchup: matchup.win_rate, reverse=True)
 		matchups[role] = role_matchups
+		#Get item page
+		item_response = requests.get('http://na.op.gg/champion/{}/statistics/{}/item'.format(name, role))
+		item_divs = re.findall('<tr>[\S\s]*?<\/tr>', item_response.text)
+		#Get builds
+		builds[role] = []
+		for div in item_divs[1:9]:
+			items = [raw_item[1] for raw_item in re.findall('(bc\'&gt;)([\S\s]*?)(&lt;)', div)]
+			win_rate = re.search('(<td class="champion-stats__table__cell champion-stats__table__cell--winrate">)([0-9]*.[0-9][0-9]%)(<\/td>)', div).group(2)
+			builds[role].append(OptimalBuild(items, win_rate))
+		builds[role].sort(key = lambda build: build.win_rate, reverse = True)
+
 	#Return dictionary
 	return 	{
 				'Name': name,
 				'Roles': roles,
 				'Win Rate': win_rates,
-				'Matchups': matchups
+				'Matchups': matchups,
+				'Builds': builds
 			}
 
 def get_champion_roles(name = None, info = None):
@@ -133,6 +147,22 @@ def get_champion_matchups(name = None, role = None, number = None, info = None):
 	if not number or number > total_matchups:
 		number = total_matchups
 	return info['Matchups'][role][:number]
+
+def get_champion_builds(name = None, role = None, number = None, info = None):
+##		Takes a champion name and role and number and returns the champion's best number builds in
+##		that role. If no role is passed, the builds of the champion's most popular role is output. If
+##		no number is passed, all builds are output.
+	if not info:
+		info = get_champion_info(name = name)
+	if role:
+		role = get_proper_role(role)
+	else:
+		role = get_champion_most_popular_role(info = info)
+	if role not in info['Roles']:
+		raise InvalidRoleException
+	if not number or number > 8:
+		number = 8
+	return info['Builds'][role][:8]
 
 ### INPUT
 
