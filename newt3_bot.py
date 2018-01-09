@@ -78,7 +78,7 @@ async def counters(name, role = None):
 	except newt3_api.InvalidRoleException:
 		output = '{} is not a role for {}. Please try again'.format(role, name)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 @bot.command()
@@ -101,7 +101,7 @@ async def items(name, role = None):
 	except newt3_api.InvalidRoleException:
 		output = '{} is not a role for {}. Please try again'.format(role, name)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 @bot.command()
@@ -117,7 +117,7 @@ async def picks(role = None):
 	except newt3_api.NonExistantRoleException:
 		output = '{} is not a valid role name. Please try again.'.format(role)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 ### RUN NEWT3 BOT
