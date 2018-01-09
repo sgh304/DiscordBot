@@ -82,6 +82,7 @@ async def counters(name, role = None):
 		return output
 
 @bot.command()
+async def items(name, role = None):
 ##		Takes in a champion name and role and outputs the top 3 builds for that champion
 ##		in that role. If no role is passed, the builds for champion's most popular role are
 ##		output.
