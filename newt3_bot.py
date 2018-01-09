@@ -55,7 +55,7 @@ async def info(command = None):
 async def bans():
 ##		Outputs the top 5 win rate champions
 	try:
-		win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
+		win_rates = newt3_api.get_champion_win_rates(number = 5)
 		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good bans.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name)
 	except newt3_api.NonExistantRoleException:
 		output = '{} is not a valid role name. Please try again.'.format(role)
