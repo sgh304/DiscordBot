@@ -60,7 +60,7 @@ async def bans():
 	except newt3_api.NonExistantRoleException:
 		output = '{} is not a valid role name. Please try again.'.format(role)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 @bot.command()
