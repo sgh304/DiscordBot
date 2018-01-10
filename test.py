@@ -81,7 +81,6 @@ def run_api_tests():
 			failures += 1
 	print('?bans...	', end = '')
 	api_bans = newt3_api.get_champion_win_rates(number = 5)
-	print(api_bans)
 	if len(api_bans) == 5:
 		print('SUCCESS!')
 		successes += 1
