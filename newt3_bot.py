@@ -52,15 +52,15 @@ async def info(command = None):
 	return output
 
 @bot.command()
-async def bans():
+async def bans(role = None):
 ##		Outputs the top 5 win rate champions
 	try:
-		win_rates = newt3_api.get_champion_win_rates(number = 5)
+		win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
 		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good bans.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name)
 	except newt3_api.NonExistantRoleException:
 		output = '{} is not a valid role name. Please try again.'.format(role)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 @bot.command()
@@ -81,7 +81,7 @@ async def counters(name, role = None):
 	except newt3_api.InvalidRoleException:
 		output = '{} is not a role for {}. Please try again'.format(role, name)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 @bot.command()
@@ -104,7 +104,7 @@ async def items(name, role = None):
 	except newt3_api.InvalidRoleException:
 		output = '{} is not a role for {}. Please try again'.format(role, name)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 @bot.command()
@@ -115,12 +115,12 @@ async def picks(role = None):
 		win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
 		role_output = ''
 		if role:
-			role_output = ' for {}'.format(role)
-		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good picks{}.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name, role_output)
+			role_output = ' for {}'.format(newt3_api.get_proper_role(role))
+		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good bans{}.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name, role_output)
 	except newt3_api.NonExistantRoleException:
 		output = '{} is not a valid role name. Please try again.'.format(role)
 	finally:
-		bot.say(output)
+		await bot.say(output)
 		return output
 
 ### RUN NEWT3 BOT
