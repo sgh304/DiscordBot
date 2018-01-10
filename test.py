@@ -81,6 +81,7 @@ def run_api_tests():
 			failures += 1
 	print('?bans...	', end = '')
 	api_bans = newt3_api.get_champion_win_rates(number = 5)
+	print(api_bans)
 	if len(api_bans) == 5:
 		print('SUCCESS!')
 		successes += 1
@@ -97,25 +98,4 @@ def run_bot_tests():
 	# as send them to the actual bot, so maybe this could be leveraged somehow.
 	pass
 
-def items(name, role = None):
-##		Takes in a champion name and role and outputs the top 3 builds for that champion
-##		in that role. If no role is passed, the builds for champion's most popular role are
-##		output.
-	try:
-		builds = newt3_api.get_champion_builds(name = name, role = role, number = 3)
-		output = 	(
-					'According to champion.gg, some good builds for {} are:\n'
-					'	-{}\n'
-					'	-{}\n'
-					'	-{}\n'
-					).format(name, builds[0].items, builds[1].items, builds[2].items)
-	except newt3_api.NonExistantChampionException:
-		output = '{} is not a valid champion name. Please try again.'.format(name)
-	except newt3_api.NonExistantRoleException:
-		output = '{} is not a valid role name. Please try again.'.format(role)
-	except newt3_api.InvalidRoleException:
-		output = '{} is not a role for {}. Please try again'.format(role, name)
-	finally:
-		return output
-
-print(items('Vayne', 'ADC'))
+run_api_tests()
