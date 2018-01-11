@@ -5,7 +5,7 @@
 ### 888 Y88b888d8P  Y8b888  888  888888       "Y8b.      d88P  8888888888P"  888   ###
 ### 888  Y8888888888888888  888  888888  888    888     d88P   888888        888   ###
 ### 888   Y8888Y8b.    Y88b 888 d88PY88b.Y88b  d88P    d8888888888888        888   ###
-### 888    Y888 "Y8888  "Y8888888P"  "Y888"Y8888P"    d88P     888888      8888888 ### 
+### 888    Y888 "Y8888  "Y8888888P"  "Y888"Y8888P"    d88P     888888      8888888 ###
 
 ###           Newt3 API -- An API to support the Newt3 Discord Chatbot             ###
 
@@ -22,6 +22,8 @@ import collections
 import json
 import re
 import requests
+from lxml import html
+
 
 ### GENERAL INFO
 
@@ -86,6 +88,13 @@ def get_champion_info(name):
 		#Get item page
 		item_response = requests.get('http://na.op.gg/champion/{}/statistics/{}/item'.format(name, role))
 		item_divs = re.findall('<tr>[\S\s]*?<\/tr>', item_response.text)
+		##Get runes
+		rune_list = re.findall('<div class="Description__Title(.*?)</div>', role_response.text)
+		runes = []
+		for i in range(0,12):
+			rune = re.findall(">(.*)", rune_list[i])
+			runes.append(rune)
+
 		#Get builds
 		builds[role] = []
 		for div in item_divs[1:9]:
@@ -100,7 +109,8 @@ def get_champion_info(name):
 				'Roles': roles,
 				'Win Rate': win_rates,
 				'Matchups': matchups,
-				'Builds': builds
+				'Builds': builds,
+				'Runes' : runes
 			}
 
 def get_champion_roles(name = None, info = None):
@@ -147,6 +157,24 @@ def get_champion_matchups(name = None, role = None, number = None, info = None):
 	if not number or number > total_matchups:
 		number = total_matchups
 	return info['Matchups'][role][:number]
+
+def get_champion_runes(name = None, role = None, info = None):
+
+	if not info:
+		info = get_champion_info(name = name)
+	if role:
+		role = get_proper_role(role)
+	else:
+		role = get_champion_most_popular_role(info = info)
+	if role not in info["Roles"]:
+		raise InvalidRoleException
+	runes = info["Runes"]
+	First_Tree = runes[0:4]
+	Second_Tree = runes[5:7]
+
+	return First_Tree, Second_Tree
+
+
 
 def get_champion_builds(name = None, role = None, number = None, info = None):
 ##		Takes a champion name and role and number and returns the champion's best number builds in

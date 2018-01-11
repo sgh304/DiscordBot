@@ -55,7 +55,7 @@ async def info(command = None):
 async def bans(role = None):
 ##		Outputs the top 5 win rate champions
 	try:
-		win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
+		win_rates = newt3_api.get_champion_win_rates(number = 5)
 		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good bans.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name)
 	except newt3_api.NonExistantRoleException:
 		output = '{} is not a valid role name. Please try again.'.format(role)
@@ -83,6 +83,26 @@ async def counters(name, role = None):
 	finally:
 		await bot.say(output)
 		return output
+
+@bot.command()
+async def runes(name, role = None):
+
+	try:
+		First_Tree, Second_Tree = newt3_api.get_champion_runes(name = name, role = role, info = None)
+		output = ("Runes with Highest Win Rate"
+				"First Tree: {}, {}, {}, {}"
+				"Second Tree: {}, {}").format(First_Tree[0],First_Tree[1],First_Tree[2],First_Tree[3],Second_Tree[0], Second_Tree[1])
+
+	except newt3_api.NonExistantChampionException:
+		output = '{} is not a valid champion name. Please try again.'.format(name)
+	except newt3_api.NonExistantRoleException:
+		output = '{} is not a valid role name. Please try again.'.format(role)
+	except newt3_api.InvalidRoleException:
+		output = '{} is not a role for {}. Please try again'.format(role, name)
+	finally:
+		await bot.say(output)
+		return output
+
 
 @bot.command()
 async def items(name, role = None):
@@ -122,6 +142,8 @@ async def picks(role = None):
 	finally:
 		await bot.say(output)
 		return output
+
+
 
 ### RUN NEWT3 BOT
 
