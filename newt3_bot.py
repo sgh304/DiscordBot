@@ -89,9 +89,9 @@ async def runes(name, role = None):
 
 	try:
 		First_Tree, Second_Tree = newt3_api.get_champion_runes(name = name, role = role, info = None)
-		output = ("Runes with Highest Win Rate")
-				("First Tree: {}, {}, {}, {}".format(First_Tree[0],First_Tree[1],First_Tree[2],First_Tree[3]))
-				("Second Tree: {}, {}".format(Second_Tree[0], Second_Tree[1]))
+		output = ("Runes with Highest Win Rate"
+				"First Tree: {}, {}, {}, {}"
+				"Second Tree: {}, {}").format(First_Tree[0],First_Tree[1],First_Tree[2],First_Tree[3],Second_Tree[0], Second_Tree[1])
 
 	except newt3_api.NonExistantChampionException:
 		output = '{} is not a valid champion name. Please try again.'.format(name)
