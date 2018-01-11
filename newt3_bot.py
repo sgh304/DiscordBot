@@ -52,7 +52,7 @@ async def info(command = None):
 	return output
 
 @bot.command()
-async def bans():
+async def bans(role = None):
 ##		Outputs the top 5 win rate champions
 	try:
 		win_rates = newt3_api.get_champion_win_rates(number = 5)
@@ -69,7 +69,10 @@ async def counters(name, role = None):
 ##		in that role. If no role is passed, the counters for champion's most popular role are
 ##		output.
 	try:
-		matchups = newt3_api.get_champion_matchups(name = name, role = role, number = 5)
+		info = newt3_api.get_champion_info(name = name)
+		matchups = newt3_api.get_champion_matchups(name = name, role = role, number = 5, info = info)
+		if not role:
+			role = newt3_api.get_champion_most_popular_role(name = name, info = info)
 		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good counters for {} in {}.'.format(matchups[0].name, matchups[1].name, matchups[2].name, matchups[3].name, matchups[4].name, name, role)
 	except newt3_api.NonExistantChampionException:
 		output = '{} is not a valid champion name. Please try again.'.format(name)
@@ -112,8 +115,8 @@ async def picks(role = None):
 		win_rates = newt3_api.get_champion_win_rates(role = role, number = 5)
 		role_output = ''
 		if role:
-			role_output = ' for {}'.format(role)
-		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good picks{}.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name, role_output)
+			role_output = ' for {}'.format(newt3_api.get_proper_role(role))
+		output = 'According to champion.gg, {}, {}, {}, {}, and {} are some good bans{}.'.format(win_rates[0].name, win_rates[1].name, win_rates[2].name, win_rates[3].name, win_rates[4].name, role_output)
 	except newt3_api.NonExistantRoleException:
 		output = '{} is not a valid role name. Please try again.'.format(role)
 	finally:
